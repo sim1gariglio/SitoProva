@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Articoli - Studio Pedagogico</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 20px; }
+        .articolo { border-bottom: 1px solid #eee; padding: 20px 0; }
+    </style>
+</head>
+<body>
+    <a href="/">&larr; Torna alla Home</a>
+    <h1>Tutti gli Articoli</h1>
+    <div id="lista-articoli">Caricamento articoli...</div>
+
+    <script>
+        // Questo script legge i file dalla cartella di GitHub in automatico
+        fetch('https://api.github.com/repos/sim1gariglio/SitoProva/contents/content/articoli')
+            .then(response => response.json())
+            .then(data => {
+                const lista = document.getElementById('lista-articoli');
+                lista.innerHTML = '';
+                data.forEach(file => {
+                    if(file.name.endsWith('.md')) {
+                        const nomeSenzaEstensione = file.name.replace('.md', '');
+                        lista.innerHTML += `<div class="articolo"><h3>${nomeSenzaEstensione}</h3><p><a href="${file.html_url}">Leggi su GitHub</a> (o personalizza questo link)</p></div>`;
+                    }
+                });
+            });
+    </script>
+</body>
+</html>
