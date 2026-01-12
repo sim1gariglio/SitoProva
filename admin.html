@@ -7,13 +7,14 @@
 </head>
 <body>
   <script>
-    // Questo "inietta" la configurazione direttamente senza leggere file esterni
     CMS.init({
       config: {
+        load_config_file: false, // IMPORTANTE: dice al CMS di non cercare file esterni
         backend: {
           name: "github",
           repo: "sim1gariglio/SitoProva",
           branch: "main",
+          base_url: "https://sitoprova.pages.dev" // Aiuta il reindirizzamento
         },
         media_folder: "images",
         public_folder: "/images",
