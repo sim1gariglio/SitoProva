@@ -3,7 +3,7 @@ backend:
   repo: sim1gariglio/SitoProva
   branch: main
 
-media_folder: "images"
+media_folder: "public/images"
 public_folder: "/images"
 
 collections:
