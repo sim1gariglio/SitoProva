@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Pannello di Controllo</title>
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+</head>
+<body>
+  <script>
+    // Questo "inietta" la configurazione direttamente senza leggere file esterni
+    CMS.init({
+      config: {
+        backend: {
+          name: "github",
+          repo: "sim1gariglio/SitoProva",
+          branch: "main",
+        },
+        media_folder: "images",
+        public_folder: "/images",
+        collections: [
+          {
+            name: "articoli",
+            label: "Articoli",
+            folder: "content/articoli",
+            create: true,
+            slug: "{{year}}-{{month}}-{{day}}-{{slug}}",
+            fields: [
+              { label: "Titolo", name: "title", widget: "string" },
+              { label: "Data", name: "date", widget: "datetime" },
+              { label: "Testo", name: "body", widget: "markdown" }
+            ]
+          }
+        ]
+      }
+    });
+  </script>
+</body>
+</html>
