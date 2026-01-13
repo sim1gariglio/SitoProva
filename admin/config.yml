@@ -2,6 +2,7 @@ backend:
   name: github
   repo: sim1gariglio/SitoProva
   branch: main
+  base_url: https://prazdevs-decap-cms-proxy.prazdevs.com # Questo è il proxy
 
 media_folder: "uploads"
 public_folder: "/uploads"
@@ -18,3 +19,4 @@ collections:
       - {label: "Data", name: "date", widget: "datetime"}
       - {label: "Immagine", name: "image", widget: "image", required: false}
       - {label: "Testo Articolo", name: "body", widget: "markdown"}
+
