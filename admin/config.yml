@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: TUO_UTENTE/NOME_REPO
+  repo: sim1gariglio/SitoProva
   branch: main
 
 media_folder: "uploads"
