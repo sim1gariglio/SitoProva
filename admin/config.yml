@@ -1,0 +1,20 @@
+backend:
+  name: github
+  repo: TUO_UTENTE/NOME_REPO
+  branch: main
+
+media_folder: "uploads"
+public_folder: "/uploads"
+
+collections:
+  - name: "blog"
+    label: "Articoli"
+    folder: "posts"
+    create: true
+    slug: "{{slug}}"
+    format: "json"
+    fields:
+      - {label: "Titolo", name: "title", widget: "string"}
+      - {label: "Data", name: "date", widget: "datetime"}
+      - {label: "Immagine", name: "image", widget: "image", required: false}
+      - {label: "Testo Articolo", name: "body", widget: "markdown"}
