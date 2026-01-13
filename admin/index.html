@@ -1,11 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Pannello</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pannello Scrittura - Pedagogista</title>
+    <style>
+        body { font-family: -apple-system, system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px 20px; background-color: #f8f9fa; }
+        .editor-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #2d3748; margin-bottom: 25px; font-size: 24px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568; }
+        input[type="text"], textarea { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        textarea { height: 300px; resize: vertical; font-family: inherit; }
+        button { background-color: #4a90e2; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background 0.2s; width: 100%; }
+        button:hover { background-color: #357abd; }
+        button:disabled { background-color: #cbd5e0; cursor: not-allowed; }
+        #status { margin-top: 20px; padding: 15px; border-radius: 6px; display: none; }
+        .success { display: block !important; background-color: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
+        .error { display: block !important; background-color: #fed7d7; color: #822727; border: 1px solid #feb2b2; }
+    </style>
 </head>
 <body>
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+<div class="editor-container">
+    <h1>Crea un nuovo articolo</h1>
+    <form id="blogForm">
+        <label for="title">Titolo dell'articolo</label>
+        <input type="text" id="title" placeholder="Es: L'importanza del gioco nel bambino" required>
+
+        <label for="content">Contenuto (Puoi usare il testo semplice)</label>
+        <textarea id="content" placeholder="Scrivi qui il tuo articolo..." required></textarea>
+
+        <button type="submit" id="submitBtn">Pubblica sul sito</button>
+    </form>
+    <div id="status"></div>
+</div>
+
+<script>
+    const WORKER_URL = "https://gestore-blog.simone-gariglio1.workers.dev/"; // <--- METTI QUI L'URL DEL TUO WORKER
+
+    document.getElementById('blogForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const status = document.getElementById('status');
+        
+        btn.disabled = true;
+        btn.innerText = 'Pubblicazione in corso...';
+        status.className = '';
+        status.innerText = '';
+
+        const data = {
+            title: document.getElementById('title').value,
+            content: document.getElementById('content').value
+        };
+
+        try {
+            const res = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                status.innerText = '✅ Articolo pubblicato! Il sito si aggiornerà tra un minuto.';
+                status.className = 'success';
+                document.getElementById('blogForm').reset();
+            } else {
+                throw new Error('Errore durante il salvataggio');
+            }
+        } catch (err) {
+            status.innerText = '❌ Errore: ' + err.message;
+            status.className = 'error';
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Pubblica sul sito';
+        }
+    };
+</script>
+
 </body>
 </html>
