@@ -80,41 +80,54 @@
         let allPosts = [];
 
         async function loadPosts() {
-            const display = document.getElementById('featured-data');
-            try {
-                const response = await fetch(WORKER_URL);
-                const data = await response.json();
-
-                // Gestione errori se GitHub risponde male (es. cartella mancante)
-                if (data.message === "Not Found" || !Array.isArray(data)) {
-                    display.innerHTML = `
-                        <div class="error-card">
-                            <b>Nessun contenuto trovato</b><br>
-                            Pubblica il tuo primo articolo dall'area riservata per attivare il blog.
-                        </div>`;
-                    return;
-                }
-
-                const jsonFiles = data.filter(f => f.name && f.name.endsWith('.json'));
-
-                if (jsonFiles.length === 0) {
-                    display.innerHTML = "<div class='status-msg'>Il blog è attualmente vuoto.</div>";
-                    return;
-                }
-
-                // Carichiamo tutti i file JSON
-                const promises = jsonFiles.map(f => fetch(f.download_url).then(res => res.json()));
-                allPosts = await Promise.all(promises);
-                
-                // Ordine cronologico decrescente
-                allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                render(allPosts);
-            } catch (err) {
-                console.error(err);
-                display.innerHTML = "<div class='status-msg'>Si è verificato un errore nel caricamento dei post.</div>";
-            }
+    const display = document.getElementById('featured-data');
+    try {
+        console.log("Tentativo di connessione al Worker...");
+        const response = await fetch(WORKER_URL);
+        
+        if (!response.ok) {
+            throw new Error(`Il Worker ha risposto con errore ${response.status}`);
         }
+
+        const data = await response.json();
+        console.log("Dati ricevuti dal Worker:", data);
+
+        // Se GitHub dice che non trova la cartella
+        if (data.message === "Not Found") {
+            display.innerHTML = `
+                <div class="status-msg">
+                    <h3>La cartella 'posts' è vuota</h3>
+                    <p>Vai nell'area <a href="/admin">Admin</a> e pubblica il tuo primo articolo per attivare il blog.</p>
+                </div>`;
+            return;
+        }
+
+        if (!Array.isArray(data)) {
+            throw new Error("I dati ricevuti non sono una lista. Errore API o Token.");
+        }
+
+        const jsonFiles = data.filter(f => f.name && f.name.endsWith('.json'));
+        if (jsonFiles.length === 0) {
+            display.innerHTML = "<div class='status-msg'>Nessun file .json trovato.</div>";
+            return;
+        }
+
+        const promises = jsonFiles.map(f => fetch(f.download_url).then(res => res.json()));
+        allPosts = await Promise.all(promises);
+        allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        render(allPosts);
+
+    } catch (err) {
+        console.error("DEBUG DETTAGLIATO:", err);
+        display.innerHTML = `
+            <div class="error-card">
+                <b>Si è verificato un errore:</b><br>
+                ${err.message}<br><br>
+                <small>Premi F12 e guarda la 'Console' per i dettagli tecnici.</small>
+            </div>`;
+    }
+}
 
         function render(posts) {
             if (posts.length === 0) return;
