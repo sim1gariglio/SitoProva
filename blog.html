@@ -3,51 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog - Pedagogia & Benessere</title>
+    <title>Blog - Dott.ssa Gariglio</title>
     <style>
         :root { --primary: #6b46c1; --text: #2d3748; --light: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fafbff; color: var(--text); line-height: 1.6; }
-        
-        /* Navigazione */
         nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
         .logo { font-weight: bold; color: var(--primary); font-size: 20px; text-decoration: none; }
         .nav-links a { margin-left: 20px; text-decoration: none; color: #4a5568; font-weight: 500; }
-
-        /* Layout Principale */
         .main-container { max-width: 1200px; margin: 40px auto; display: grid; grid-template-columns: 1fr 350px; gap: 40px; padding: 0 20px; }
-
-        /* Articolo Centrale */
         #featured-post { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #edf2f7; }
         .featured-img { width: 100%; height: 450px; object-fit: cover; background: #eee; }
         .featured-content { padding: 40px; }
         .featured-content h1 { font-size: 36px; margin: 10px 0; color: var(--primary); }
         .date-label { color: #a0aec0; font-size: 14px; text-transform: uppercase; }
-
-        /* Barra Laterale */
         .sidebar { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: fit-content; }
         .search-box { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; }
-        
         .side-post { display: flex; gap: 15px; margin-bottom: 20px; cursor: pointer; padding: 10px; border-radius: 12px; transition: 0.2s; border: 1px solid transparent; }
         .side-post:hover { background: var(--light); border-color: var(--primary); }
         .side-post img { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; }
-        .side-post-info h4 { margin: 0; font-size: 14px; color: var(--text); }
-
-        .error-msg { padding: 50px; text-align: center; color: #e53e3e; }
-
-        @media (max-width: 900px) {
-            .main-container { grid-template-columns: 1fr; }
-            .featured-img { height: 250px; }
-        }
+        @media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-
     <nav>
-        <a href="/" class="logo">Dott.ssa Gariglio</a>
+        <a href="/" class="logo">Studio Gariglio</a>
         <div class="nav-links">
             <a href="/">Home</a>
             <a href="/blog.html">Blog</a>
-            <a href="/admin">Area Riservata</a>
+            <a href="/admin">Scrivi</a>
         </div>
     </nav>
 
@@ -73,69 +56,62 @@
         async function loadPosts() {
             const display = document.getElementById('featured-data');
             try {
-                // Chiamata al tuo Worker che ha il permesso per GitHub
                 const response = await fetch(WORKER_URL);
-                if (!response.ok) throw new Error("Il Worker ha risposto con errore.");
-
                 const files = await response.json();
                 const jsonFiles = files.filter(f => f.name.endsWith('.json'));
 
                 if (jsonFiles.length === 0) {
-                    display.innerHTML = "<div style='padding:50px; text-align:center;'>Nessun articolo trovato. Scrivine uno dall'area admin!</div>";
+                    display.innerHTML = "<div style='padding:50px; text-align:center;'>Nessun articolo presente.</div>";
                     return;
                 }
 
-                // Carichiamo i contenuti di ogni file JSON
                 const promises = jsonFiles.map(f => fetch(f.download_url).then(res => res.json()));
                 allPosts = await Promise.all(promises);
-                
-                // Ordiniamo per data (più recente sopra)
                 allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 render(allPosts);
             } catch (err) {
-                console.error(err);
-                display.innerHTML = `<div class='error-msg'><b>Errore:</b><br>${err.message}</div>`;
+                display.innerHTML = "<div style='padding:50px; text-align:center;'>Errore nel caricamento.</div>";
             }
         }
 
         function render(posts) {
             if (posts.length === 0) return;
-            showFeatured(posts[0]); // Mostra l'ultimo in grande
-
+            showFeatured(posts[0]);
             const list = document.getElementById('posts-list');
             list.innerHTML = '';
             posts.forEach((post, index) => {
-                list.innerHTML += `
-                    <div class="side-post" onclick="showFeaturedByIndex(${index})">
-                        <img src="${post.image || 'https://via.placeholder.com/100?text=Blog'}">
-                        <div class="side-post-info">
-                            <h4>${post.title}</h4>
-                            <span>${new Date(post.date).toLocaleDateString('it-IT')}</span>
-                        </div>
+                const item = document.createElement('div');
+                item.className = 'side-post';
+                item.onclick = () => showFeatured(allPosts[index]);
+                item.innerHTML = `
+                    <img src="${post.image || 'https://via.placeholder.com/100'}">
+                    <div class="side-post-info">
+                        <h4 id="title-${index}"></h4>
+                        <span>${new Date(post.date).toLocaleDateString('it-IT')}</span>
                     </div>`;
+                list.appendChild(item);
+                document.getElementById(`title-${index}`).textContent = post.title;
             });
         }
 
         function showFeatured(post) {
-            document.getElementById('featured-data').innerHTML = `
+            const display = document.getElementById('featured-data');
+            display.innerHTML = `
                 ${post.image ? `<img src="${post.image}" class="featured-img">` : ''}
                 <div class="featured-content">
                     <span class="date-label">${new Date(post.date).toLocaleDateString('it-IT', { day:'numeric', month:'long', year:'numeric'})}</span>
-                    <h1>${post.title}</h1>
-                    <p style="white-space: pre-wrap;">${post.content}</p>
+                    <h1 id="f-title"></h1>
+                    <p id="f-content" style="white-space: pre-wrap;"></p>
                 </div>`;
+            document.getElementById('f-title').textContent = post.title;
+            document.getElementById('f-content').textContent = post.content;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function showFeaturedByIndex(index) {
-            showFeatured(allPosts[index]);
-        }
-
         function filterPosts() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allPosts.filter(p => p.title.toLowerCase().includes(query));
-            render(filtered);
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            render(allPosts.filter(p => p.title.toLowerCase().includes(q)));
         }
 
         loadPosts();

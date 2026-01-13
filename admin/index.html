@@ -3,41 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Scrivi Articolo</title>
+    <title>Admin - Gestione Blog</title>
     <style>
         :root { --primary: #6b46c1; --bg: #f7fafc; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        nav { max-width: 800px; margin: 0 auto 20px; display: flex; gap: 20px; }
-        nav a { text-decoration: none; color: var(--primary); font-weight: bold; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        h1 { color: #2d3748; }
-        label { display: block; margin: 15px 0 5px; font-weight: 600; color: #4a5568; }
-        input, textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        textarea { height: 250px; }
-        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-size: 18px; cursor: pointer; margin-top: 20px; }
-        button:hover { opacity: 0.9; }
-        #status { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; text-align: center; }
-        .success { display: block; background: #c6f6d5; color: #22543d; }
+        .container { max-width: 700px; margin: 40px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); margin-top: 0; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
+        textarea { height: 200px; resize: vertical; }
+        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-size: 16px; cursor: pointer; margin-top: 20px; font-weight: bold; }
+        button:disabled { background: #cbd5e0; }
+        #status { margin-top: 15px; padding: 10px; border-radius: 5px; display: none; text-align: center; }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="/">🏠 Home Sito</a>
-        <a href="/blog.html">📚 Vedi Blog</a>
-    </nav>
     <div class="container">
         <h1>Nuovo Articolo</h1>
         <form id="postForm">
             <label>Titolo</label>
-            <input type="text" id="title" required placeholder="Titolo dell'articolo...">
-            
+            <input type="text" id="title" required placeholder="Inserisci il titolo...">
             <label>Immagine di copertina</label>
             <input type="file" id="image" accept="image/*">
-            
             <label>Contenuto</label>
-            <textarea id="content" required placeholder="Scrivi qui..."></textarea>
-            
-            <button type="submit" id="btn">Pubblica Articolo</button>
+            <textarea id="content" required placeholder="Scrivi qui il tuo articolo..."></textarea>
+            <button type="submit" id="submitBtn">Pubblica sul Blog</button>
         </form>
         <div id="status"></div>
     </div>
@@ -45,37 +35,54 @@
     <script>
         const WORKER_URL = 'https://gestore-blog.simone-gariglio1.workers.dev/';
 
-        const toBase64 = file => new Promise((resolve) => {
+        const toBase64 = file => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
         });
 
         document.getElementById('postForm').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('btn');
+            const btn = document.getElementById('submitBtn');
             const status = document.getElementById('status');
-            btn.disabled = true; btn.innerText = "Invio in corso...";
+            
+            btn.disabled = true;
+            btn.innerText = "Caricamento...";
 
             const imgFile = document.getElementById('image').files[0];
-            const data = {
+            let base64Image = "";
+            if (imgFile) base64Image = await toBase64(imgFile);
+
+            const payload = {
                 title: document.getElementById('title').value,
                 content: document.getElementById('content').value,
-                image: imgFile ? await toBase64(imgFile) : ""
+                image: base64Image
             };
 
             try {
-                const res = await fetch(WORKER_URL, {
+                const response = await fetch(WORKER_URL, {
                     method: 'POST',
-                    body: JSON.stringify(data)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-                if(res.ok) {
-                    status.className = "success"; status.innerText = "✅ Pubblicato con successo!";
+
+                if (response.ok) {
                     status.style.display = "block";
+                    status.style.background = "#c6f6d5";
+                    status.innerText = "✅ Articolo pubblicato correttamente!";
                     document.getElementById('postForm').reset();
+                } else {
+                    throw new Error();
                 }
-            } catch (err) { alert("Errore invio"); }
-            btn.disabled = false; btn.innerText = "Pubblica Articolo";
+            } catch (err) {
+                status.style.display = "block";
+                status.style.background = "#fed7d7";
+                status.innerText = "❌ Errore durante l'invio.";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Pubblica sul Blog";
+            }
         };
     </script>
 </body>
