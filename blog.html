@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Pedagogista</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f7fafc; margin: 0; }
+        header { background: #6b46c1; color: white; padding: 40px 20px; text-align: center; }
+        nav { background: white; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        nav a { margin: 0 15px; text-decoration: none; color: #6b46c1; font-weight: bold; }
+        .grid { max-width: 1000px; margin: 40px auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 0 20px; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .card img { width: 100%; height: 200px; object-fit: cover; }
+        .card-body { padding: 20px; }
+        .card-body h2 { margin: 0 0 10px; font-size: 20px; color: #2d3748; }
+        .card-body p { color: #718096; font-size: 14px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/blog.html">Blog</a>
+        <a href="/admin">Scrivi</a>
+    </nav>
+    <header><h1>Il mio Blog Pedagogico</h1></header>
+    <div class="grid" id="blogGrid">Caricamento articoli...</div>
+
+    <script>
+        async function load() {
+            const repo = "sim1gariglio/SitoProva";
+            const res = await fetch(`https://api.github.com/repos/${repo}/contents/posts`);
+            const files = await res.json();
+            const grid = document.getElementById('blogGrid');
+            grid.innerHTML = '';
+
+            for (let file of files.reverse()) {
+                if (file.name.endsWith('.json')) {
+                    const postRes = await fetch(file.download_url);
+                    const post = await postRes.json();
+                    grid.innerHTML += `
+                        <div class="card">
+                            ${post.image ? `<img src="${post.image}">` : ''}
+                            <div class="card-body">
+                                <h2>${post.title}</h2>
+                                <p>${post.content.substring(0, 100)}...</p>
+                            </div>
+                        </div>`;
+                }
+            }
+        }
+        load();
+    </script>
+</body>
+</html>
